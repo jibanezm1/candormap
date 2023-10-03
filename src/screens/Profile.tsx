@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { Switch } from 'react-native-paper';
 import ProgressCircle from 'react-native-progress-circle'
@@ -8,15 +8,17 @@ import PrimaryButton from '../components/atoms/Buttons/PrimaryButton';
 import MenuItem from '../components/molecules/MenuItem';
 import { Image } from 'react-native-elements';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../redux/slices/usuariosSlice';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 
 const Profile = () => {
   const [isSwitchOn, setIsSwitchOn] = React.useState(false);
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const currentUser = useSelector(state => state.usuarios.currentUser);
 
 
   const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
@@ -53,6 +55,54 @@ const Profile = () => {
     },
   ];
 
+
+  const handleItemClick = () => {
+    Alert.alert('Aviso', 'Esta funcionalidad estará disponible próximamente');
+  };
+
+  const askForConfirmation = () => {
+    Alert.alert(
+      'Confirmación',
+      '¿Estás seguro de que deseas eliminar la cuenta?',
+      [
+        {
+          text: 'No',
+          style: 'cancel'
+        },
+        {
+          text: 'Sí',
+          onPress: handleDisableUser
+        }
+      ]
+    );
+  };
+
+  const handleDisableUser = async () => {
+    try {
+      console.log(currentUser.idUsuario);
+      const response = await axios.post('https://candormap.cl/api/disable?idUsuario=' + currentUser.idUsuario);
+
+      if (response.data.status === 'success') {
+        Alert.alert(
+          ' ',
+          'Usuario deshabilitado con éxito',
+          [
+            {
+              text: 'OK',
+              onPress: handleLogout
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Error', response.data.message || 'Error al deshabilitar al usuario');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Hubo un problema al deshabilitar al usuario');
+    }
+  };
+
+
+
   const handleLogout = async () => {
     try {
       // 1. Elimina el usuario del AsyncStorage
@@ -78,6 +128,13 @@ const Profile = () => {
         size='small'
         style={{ width: '60%', margin: 35 }}
         onPress={() => { }} // Llama a la función handleLogin cuando se presione el botón
+      />
+      <PrimaryButton
+        type="tertiary"
+        title="Eliminar mi cuenta"
+        size='small'
+        style={{ width: '60%', marginHorizontal: 35 }}
+        onPress={askForConfirmation}
       />
 
     </View>)
@@ -122,12 +179,12 @@ const Profile = () => {
         <View style={{ width: "100%" }}>
           <View style={[styles.official3, styles.containerButtons]}>
             <TouchableOpacity style={styles.button}
-              onPress={() => console.log("hola")}
+              onPress={handleItemClick}
             >
               <Text style={{ color: "black" }}>Completar Perfil</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.button}
-              onPress={() =>  handleLogout()}
+              onPress={() => handleLogout()}
             >
               <Text style={{ color: "black" }}>Salir de Candormap</Text>
             </TouchableOpacity>

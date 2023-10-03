@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, Alert } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 type TaskItemProps = {
     title: string;
@@ -8,14 +9,23 @@ type TaskItemProps = {
     duration: string;
     imageSource: string;
 };
+
 const MenuItem: React.FC<TaskItemProps> = ({ title, imageSource }) => {
+
+    // Función para manejar el click en el item
+    const handleItemClick = () => {
+        Alert.alert('Aviso', 'Esta funcionalidad estará disponible próximamente');
+    };
+
     return (
-        <View style={styles.container}>
+        <TouchableOpacity onPress={handleItemClick}>
+            <View style={styles.container} >
             <Image source={imageSource} style={styles.image} />
             <View style={styles.details}>
                 <Text style={styles.title}>{title}</Text>
             </View>
         </View>
+        </TouchableOpacity>
     );
 };
 
@@ -33,7 +43,7 @@ const styles = StyleSheet.create({
     },
     details: {
         flex: 1,
-        top:10
+        top: 10,
     },
     title: {
         fontSize: 14,

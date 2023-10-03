@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Alert, KeyboardAvoidingView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import BaseAppScreen from '../../templates/BaseAppScreen';
 import Button from '../../components/atoms/Buttons/Button';
 import PrimaryButton from '../../components/atoms/Buttons/PrimaryButton';
@@ -61,7 +61,9 @@ const Login = () => {
       );
     }
   };
-
+  const handleItemClick = () => {
+    Alert.alert('Aviso', 'Esta funcionalidad estará disponible próximamente');
+  };
 
 
   return (
@@ -98,8 +100,9 @@ const Login = () => {
             onChangeText={setPassword}
             secureTextEntry
           />
-
-          <Text style={{ textAlign: 'justify', top: 20, color: "white" }}>¿Olvidaste tu Contraseña?</Text>
+          <TouchableOpacity onPress={handleItemClick}>
+            <Text style={{ textAlign: 'justify', top: 20, color: "white" }}>¿Olvidaste tu Contraseña?</Text>
+          </TouchableOpacity>
         </View>
         <View style={{ alignSelf: 'center' }} >
 
