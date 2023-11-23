@@ -57,6 +57,7 @@ const Picker: React.FC<PickerProps> = ({ options, onChange, ...props }) => {
         ]}
       >
         <FlatList
+          nestedScrollEnabled={true}
           data={options}
           renderItem={_renderItem}
           contentContainerStyle={{ paddingVertical: 8 }}

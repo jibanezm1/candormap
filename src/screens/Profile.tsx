@@ -14,6 +14,8 @@ import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
 
+// SCREEN CON EL PERFIL DE USUARIO (INVESTIGADOR O ENCUESTADO)
+
 const Profile = () => {
   const [isSwitchOn, setIsSwitchOn] = React.useState(false);
   const dispatch = useDispatch();
@@ -79,7 +81,7 @@ const Profile = () => {
 
   const handleDisableUser = async () => {
     try {
-      console.log(currentUser.idUsuario);
+
       const response = await axios.post('https://candormap.cl/api/disable?idUsuario=' + currentUser.idUsuario);
 
       if (response.data.status === 'success') {
@@ -195,6 +197,8 @@ const Profile = () => {
       <View style={styles.containerProgress}>
 
         <FlatList
+          nestedScrollEnabled={true}
+
           data={tasksData}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (

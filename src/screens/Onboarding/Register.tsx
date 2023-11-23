@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native';
 import { Switch } from 'react-native-paper';
 import Input from '../../components/atoms/Input/Input';
 import axios from 'axios';
@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../redux/slices/usuariosSlice';
+import PhoneInput from 'react-native-international-phone-number';
 
 
 const Profile = () => {
@@ -21,15 +22,31 @@ const Profile = () => {
   const [status, setStatus] = useState('');
   const [error, setError] = useState(false);
 
+
+  type Country = {
+    cca2: string;
+  } | null;
+
+  const [selectedCountry, setSelectedCountry] = useState<Country>(null);
+  const [inputValue, setInputValue] = useState('');
+
+  const handleSelectedCountry = (country) => {
+    setSelectedCountry(country);
+    console.log(country.cca2);
+  }
+
+  const handleInputValue = (phoneNumber) => {
+    setInputValue(phoneNumber);
+  }
+
   const navigation = useNavigation();
   const dispatch = useDispatch();
 
 
   const handleRegister = () => {
-    console.log(isSwitchOn);
 
     // Verificar si los campos obligatorios están llenos
-    if (!nombre || !apellidos || !email || !password) {
+    if (!nombre || !apellidos || !email || !password || !inputValue) {
       setStatus("Por favor, complete todos los campos.");
       setIsVisible(true);
       return; // Evitar enviar la solicitud si falta algún campo
@@ -39,8 +56,11 @@ const Profile = () => {
       apellidos: apellidos,
       email: email,
       password: password,
-      idPerfil: isSwitchOn == true ? 2 : 1
+      telefono: inputValue,
+      idPerfil: isSwitchOn == true ? 2 : 1,
+      country: selectedCountry ? selectedCountry.cca2 : "CL"
     };
+
 
     axios
       .post('https://candormap.cl/api/register', userData)
@@ -192,6 +212,15 @@ const Profile = () => {
             },
           }}
           onChangeText={text => setEmail(text)}
+        />
+        <PhoneInput
+          value={inputValue}
+          language="es"
+          placeholder="Ingrese su número de teléfono"
+          defaultCountry="CL"
+          onChangePhoneNumber={handleInputValue}
+          selectedCountry={selectedCountry}
+          onChangeSelectedCountry={handleSelectedCountry}
         />
         <Input
           label="Crear una Contraseña"

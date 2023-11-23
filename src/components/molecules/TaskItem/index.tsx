@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, Alert } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 type TaskItemProps = {
@@ -10,14 +10,26 @@ type TaskItemProps = {
     duration: string;
     imageSource: string;
     cuestionario: any;
+    instrucciones: any;
+    estado: boolean;
+    mision: any;
+    onPressTask: (estado: any, cuestionarioData: any, mision: any, instrucciones: any) => void
 };
-const TaskItem: React.FC<TaskItemProps> = ({ title, description, price, duration, imageSource, cuestionario }) => {
+const TaskItem: React.FC<TaskItemProps> = ({ title, description, price, duration, imageSource, cuestionario, instrucciones, estado, mision, onPressTask }) => {
     const navigation = useNavigation();
+    const baseUrl = 'https://candormap.cl/uploads/';
+
+    const handlePress = () => {
+
+        onPressTask?.(estado, cuestionario, mision, instrucciones);
+    }
+    // Concatenamos la URL completa
+    const imageUrl = `${baseUrl}${imageSource}`;
     return (
         <TouchableOpacity style={styles.container}
-            onPress={() => navigation.navigate("Questionnarie", { cuestionarioData: cuestionario })}
+            onPress={handlePress}
         >
-            <Image source={imageSource} style={styles.image} />
+            <Image source={{ uri: imageUrl }} style={styles.image} />
             <View style={styles.details}>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={styles.duration}> {price}, {duration}</Text>

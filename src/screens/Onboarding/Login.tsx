@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../redux/slices/usuariosSlice';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 const Login = () => {
 
@@ -73,9 +73,7 @@ const Login = () => {
         source={require("../../assets/candormap.png")}
       />
       <KeyboardAwareScrollView
-        onKeyboardWillShow={(frames: Object) => {
-          console.log('Keyboard event', frames)
-        }}
+       
         innerRef={ref => {
           this.scroll = ref
         }}>

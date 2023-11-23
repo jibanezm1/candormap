@@ -14,7 +14,7 @@ const HeaderButton: React.FC = ({
     const navigation = useNavigation();
     const renderColor = 'white';
     const handlePress = () => {
-        navigation.goBack();
+        navigation.navigate('Profile');
     };
 
     return (

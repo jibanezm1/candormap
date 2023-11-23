@@ -23,7 +23,8 @@ export function HomeTaskStackNavigator() {
           headerStyle: {
             backgroundColor: '#30023e', // Set your desired background color here
           },
-          headerRight: () => <HeaderButton />,
+          headerShown: false,
+
         }}
       />
       <HomeTaskStack.Screen

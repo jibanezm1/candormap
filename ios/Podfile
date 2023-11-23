@@ -10,13 +10,14 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-platform :ios, min_ios_version_supported
+platform :ios, '13.0'
 prepare_react_native_project!
 
 setup_permissions([
   'Camera',
   'PhotoLibrary',
-  'PhotoLibraryAddOnly'
+  'PhotoLibraryAddOnly', # Agrega una coma aquí
+  'LocationWhenInUse' # O 'LocationAlways' según lo que necesites
 ])
 # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
 # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
@@ -36,6 +37,9 @@ if linkage != nil
 end
 
 target 'candormap' do
+  pod 'Google-Maps-iOS-Utils', :git => 'https://github.com/Simon-TechForm/google-maps-ios-utils.git', :branch => 'feat/support-apple-silicon'
+  rn_maps_path = '../node_modules/react-native-maps'
+  pod 'react-native-google-maps', :path => rn_maps_path
   config = use_native_modules!
 
   # Flags change depending on the env values.
@@ -61,6 +65,7 @@ target 'candormap' do
     inherit! :complete
     # Pods for testing
   end
+ 
 
   post_install do |installer|
     # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202

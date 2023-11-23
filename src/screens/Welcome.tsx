@@ -6,51 +6,61 @@ import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../redux/slices/usuariosSlice';
-import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+
+
+// SCREEN DE BIENVENIDA PARA DERIVAR A INICIO DE SESION O REGISTRO DE USUARIO
+
 
 const Task = () => {
 
     const navigation = useNavigation();
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch();
+    const checkAndRequestPermission = async (permission) => {
+        const result = await check(permission);
+
+        switch (result) {
+            case RESULTS.UNAVAILABLE:
+                console.log(`${permission} no está disponible en este dispositivo`);
+                break;
+            case RESULTS.DENIED:
+                console.log(`${permission} no ha sido solicitado aún`);
+                const newResult = await request(permission);
+                if (newResult === RESULTS.GRANTED) {
+                    console.log(`${permission} ha sido concedido`);
+                } else {
+                    console.log(`${permission} ha sido denegado`);
+                }
+                break;
+            case RESULTS.GRANTED:
+                console.log(`${permission} ya ha sido concedido`);
+                break;
+            case RESULTS.BLOCKED:
+                console.log(`${permission} ha sido bloqueado y no se puede solicitar nuevamente`);
+                break;
+        }
+    };
+
 
     useEffect(() => {
-        check(PERMISSIONS.IOS.CAMERA)
-            .then((result) => {
-                switch (result) {
-                    case RESULTS.UNAVAILABLE:
-                        console.log('Esta característica no está disponible (en este dispositivo / en este contexto)');
-                        break;
-                    case RESULTS.DENIED:
-                        console.log('El permiso no se ha solicitado / se ha denegado pero se puede solicitar');
-                        // Solicitar el permiso
-                        request(PERMISSIONS.IOS.CAMERA).then((newResult) => {
-                            if (newResult === RESULTS.GRANTED) {
-                                console.log('El permiso ha sido concedido');
-                            } else {
-                                console.log('El permiso ha sido denegado');
-                            }
-                        });
-                        break;
-                    case RESULTS.GRANTED:
-                        console.log('El permiso ha sido concedido');
-                        break;
-                    case RESULTS.BLOCKED:
-                        console.log('El permiso ha sido denegado y no se puede solicitar nuevamente');
-                        break;
-                }
-            })
-            .catch((error) => {
-                // Manejar el error
-            });
-        // Función para verificar el valor en AsyncStorage
+        // Verificar y solicitar permiso de cámara
+        checkAndRequestPermission(PERMISSIONS.IOS.CAMERA);
+
+        // Verificar y solicitar permiso de ubicación
+        checkAndRequestPermission(PERMISSIONS.IOS.LOCATION_WHEN_IN_USE);
         checkCurrentUser();
-    }, []); // Array vacío significa que este useEffect se ejecuta solo una vez cuando el componente se monta.
+
+
+        // Otras acciones iniciales aquí, como checkCurrentUser()
+        // ...
+    }, []);
+
 
     const checkCurrentUser = async () => {
         try {
             const user = await AsyncStorage.getItem('currentUser');
-            console.log(user);
+
             if (user) {
                 dispatch(loginUser(user));
 
@@ -122,6 +132,8 @@ const Task = () => {
 
     );
 };
+
+
 const styles = StyleSheet.create({
 
     container: {

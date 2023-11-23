@@ -10,6 +10,11 @@ import { useSelector } from 'react-redux';
 import usuariosSlice from '../redux/slices/usuariosSlice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator } from 'react-native';
+
+
+// SCREEN CON LA ENCUESTA 
+
+
 export interface SurveyData {
     id: number;
     options: string[];
@@ -17,22 +22,18 @@ export interface SurveyData {
     selectedOptions: string[];
     type: string;
     cuestionarioData: any;
+    misiones: any;
 }
 
 const HomeSurvey = () => {
 
     const route = useRoute();
-
     const data: any = route.params.cuestionarioData;
+    const misiones: any = route.params.misiones;
     const navigation = useNavigation();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(false);
-
-    const currentUser = useSelector(state => state.usuarios.currentUser);
-
-
-
-
+    const [currentUser, setCurrentUser] = React.useState([]);  // <--- Estado para almacenar la data
 
     useEffect(() => {
 
@@ -46,7 +47,20 @@ const HomeSurvey = () => {
     }, []);
 
 
-
+    // Llama a la API cuando el componente se monta
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const user = await AsyncStorage.getItem('currentUser');
+                if (user) {
+                    setCurrentUser(JSON.parse(user));
+                }
+            } catch (error) {
+                console.error("Error al leer el valor de AsyncStorage:", error);
+            }
+        };
+        fetchData();
+    }, []);
 
     const [surveyData, setSurveyData] = useState(() => {
         if (data && data.preguntas) {
@@ -111,7 +125,10 @@ const HomeSurvey = () => {
             formData.append(`idCuestionario`, data.cuestionarioId);
             formData.append(`idUsuario`, currentUser.idUsuario);
 
-            console.log('data.idCuestionario: ', data.cuestionarioId);
+            formData.append(`misiones`, misiones);
+
+
+            
             mappedResponses.forEach((response: any, index: number) => {
                 if (response.urlFoto) {
                     const fileName = response.urlFoto.split('/').pop();  // Extrae el nombre del archivo de la URI
@@ -149,7 +166,10 @@ const HomeSurvey = () => {
                     [
                         {
                             text: "OK",
-                            onPress: () => navigation.navigate('HomeTask')
+                            onPress: () => {
+                                navigation.navigate('HomeTask');
+
+                            }
                         }
                     ],
                     { cancelable: false }  // Esto hace que el alerta no se pueda cerrar tocando fuera de él
@@ -214,10 +234,6 @@ const HomeSurvey = () => {
         sendSurveyData(mappedResponses);
     }
 
-
-
-
-
     const handleCameraSelect = (questionId: number) => {
         launchCamera({ noData: true }, (response) => {
 
@@ -232,15 +248,10 @@ const HomeSurvey = () => {
         });
     };
 
-
     const isSurveyComplete = surveyData.every((question) => {
 
         return question.selectedOptionIds && question.selectedOptionIds.length > 0;
     });
-
-
-
-
 
     return (
         <ScrollView style={styles.container}>

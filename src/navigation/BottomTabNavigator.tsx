@@ -17,7 +17,7 @@ function BottomTabNavigator() {
       activeColor="black"
       inactiveColor="#3e2465"
     >
-      <Tab.Screen name="HomeTask"
+      <Tab.Screen name="HomeTasks"
         options={{
           tabBarLabel: 'Mis Tareas', // Título que se mostrará en el encabezado
           tabBarIcon: ({ color, size }) => (
@@ -25,7 +25,7 @@ function BottomTabNavigator() {
           ),
         }}
         component={HomeTaskStackNavigator} />
-      <Tab.Screen name="Missions"
+      <Tab.Screen name="MissionsHome"
         options={{
 
           title: 'Misiones', // Título que se mostrará en el encabezado
