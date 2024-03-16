@@ -1,50 +1,97 @@
-import React from 'react'
-import { View, Text, Image, ImageBackground, TouchableOpacity, StatusBar, Dimensions, useWindowDimensions, StyleSheet, } from 'react-native'
-import { Modalize } from 'react-native-modalize'
-import Chapters from './Chapters'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import colors from '../styles/Colors'
-import Cabeza from '../components/molecules/Header'
-import { ActivityIndicator } from 'react-native-paper'
+import React, { useState, useEffect } from 'react';
+import { View, useWindowDimensions, StyleSheet, Animated, ImageBackground, Image, Dimensions, Platform, Alert, TouchableOpacity } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
-import Missions from './Missions'
-import Discovery from './Discovery'
-import { useSelector } from 'react-redux'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { useNavigation } from '@react-navigation/native'
+import Tasks from './Tasks';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Cabeza from '../components/molecules/Header';
+import { Modalize } from 'react-native-modalize';
+import Tooltip from "react-native-walkthrough-tooltip";
 
-const windowWidth = Dimensions.get('window').width; // Ancho de la ventana
-const FirstRoute = () => (
-  <Missions estado="0" />
+import { Text } from 'react-native-paper';
+import colors from '../styles/Colors';
+
+import { capitalizeInitials } from '../utils/aux';
+import Icon from 'react-native-vector-icons/Ionicons';
+import TooltipButton from '../components/atoms/Tooltip';
+import { ScreenWidth } from 'react-native-elements/dist/helpers';
+import Missions from './Missions';
+import { Color } from '../styles/Global';
+
+
+const windowHeight = Dimensions.get('window').height;
+const desiredHeight = windowHeight * 0.55; // 80% de la altura de la pantalla
+
+const FirstRoute = (props) => (
+  <Tasks data={props.data} estado={true} loading={props.loading} />
 );
 
-const SecondRoute = () => (
-  <Missions estado="1" />
+const SecondRoute = (props) => (
+  <Tasks data={props.data} estado={false} loading={props.loading} />
 );
 
-const ThirtRoute = () => (
-  <Discovery />
-);
+export default function HomeTask() {
 
-const renderScene = SceneMap({
-  first: FirstRoute,
-  second: SecondRoute,
-  thirt: ThirtRoute,
-});
-const perfilNombre = (idPerfil: string) => {
-  const perfiles: { [key: string]: string } = {
-    '1': 'Investigador',
-    '2': 'Encuestado',
-    '3': 'Administrador',
-    '4': 'Revisor'
+
+  const [logoAnimation] = useState(new Animated.Value(0)); // Valor animado para la animación
+
+  useEffect(() => {
+    // Iniciar la animación cuando el componente se monta
+    Animated.timing(logoAnimation, {
+      toValue: 1,
+      duration: 600, // Duración en milisegundos
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const logoStyle = {
+    transform: [
+      {
+        translateY: logoAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-100, 0], // Comienza 100 píxeles arriba y se mueve a su posición original
+        }),
+      },
+    ],
   };
+  const [showTooltip, setShowTooltip] = React.useState(false);
+  const [secondshowTooltip, setSecondShowTooltip] = React.useState(false);
 
-  return perfiles[idPerfil] || 'Perfil no encontrado';
-}
-export default function HomeMissions() {
+  const layout = useWindowDimensions();
+  const [isLoading, setIsLoading] = React.useState(true);
+  React.useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+  }, []);
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: 'first', title: 'Pendiente' },
+    { key: 'second', title: 'Realizadas' },
+  ]);
+  const [data, setData] = React.useState([]);
+  const [nodata, setNoData] = React.useState([]);
+  const windowWidth = Dimensions.get('window').width; // Ancho de la ventana
+  const navigation = useNavigation();
 
   const [currentUser, setCurrentUser] = React.useState([]);
-  const navigation = useNavigation();
+  const [loading, setLoading] = React.useState(true); // <-- Agregado estado para controlar el loading
+  const perfilNombre = (idPerfil: string) => {
+
+    const perfiles: { [key: string]: string } = {
+      '1': 'Investigador',
+      '2': 'Encuestado',
+      '3': 'Administrador',
+      '4': 'Revisor'
+    };
+    return perfiles[idPerfil] || 'Perfil no encontrado';
+
+  };
+
+
   React.useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,147 +105,251 @@ export default function HomeMissions() {
     };
     fetchData();
   }, []);
-  const layout = useWindowDimensions();
-  const [isLoading, setIsLoading] = React.useState(true);
+
   React.useEffect(() => {
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
+    const checkTooltipShown = async () => {
+      try {
+        const tooltipShown = await AsyncStorage.getItem('tooltipShown1');
+        console.log("tooltipShown1: ", tooltipShown);
+        if (!tooltipShown) {
+          setShowTooltip(false);
+        }
+      } catch (error) {
+        console.error("Error al leer el valor de AsyncStorage:", error);
+      }
+    };
+
+    checkTooltipShown();
   }, []);
-  const [index, setIndex] = React.useState(0);
-  const [routes] = React.useState([
-    { key: 'first', title: 'Misiones' },
-    { key: 'second', title: 'Resueltas' },
-    { key: 'thirt', title: 'Explorar' },
-  ]);
+
+
+  const closeTooltip = async () => {
+    try {
+      await AsyncStorage.setItem('tooltipShown1', 'true');
+      setShowTooltip(false);
+    } catch (error) {
+      console.error("Error al guardar en AsyncStorage:", error);
+    }
+  };
+  const closeTooltipHeader = async () => {
+    try {
+      await AsyncStorage.setItem('tooltipShown2', 'true');
+      setSecondShowTooltip(false);
+      setShowTooltip(true);
+    } catch (error) {
+      console.error("Error al guardar en AsyncStorage:", error);
+    }
+  };
+
+
+
+
+  const fetchDataFromAPI = React.useCallback(() => {
+    setLoading(true);
+    if (currentUser && currentUser.idUsuario) {
+      axios.get(`https://candormap.cl/api/cuestionarios?idUsuario=${currentUser.idUsuario}`)
+        .then(response => {
+          setData(response.data.cuestionariosNoResueltos);
+          setNoData(response.data.cuestionariosResueltos);
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error("There was an error fetching data", error);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [currentUser]);
+
+  React.useEffect(() => {
+    fetchDataFromAPI();
+  }, [fetchDataFromAPI]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchDataFromAPI();
+      return () => { };
+    }, [fetchDataFromAPI])
+  );
+
+  const renderScene = ({ route }) => {
+    switch (route.key) {
+      case 'first':
+        return <FirstRoute data={data} loading={loading} />;
+      case 'second':
+        return <SecondRoute data={nodata} loading={loading} />;
+      default:
+        return null;
+    }
+  };
 
   const renderTabBar = (props) => (
-    <TabBar
-      {...props}
-      indicatorStyle={styles.tabIndicator}
-      style={styles.tabBar}
-      labelStyle={styles.tabLabel}
-    />
+
+    <Tooltip
+      isVisible={showTooltip}
+      content={
+        <TooltipButton index={1} content="En estas pestañas podras revisar cada una de tus tareas" onPress={closeTooltip} />
+      }
+      childContentSpacing={5}
+      contentStyle={{
+        backgroundColor: "white",
+        height: 80,
+        padding: Platform.OS === 'android' ? 0 : 10,
+        width: ScreenWidth - 30,
+        borderRadius: 10
+      }}
+      placement="top"
+      onClose={() => closeTooltip()}
+      useInteractionManager={true} // need this prop to wait for react navigation
+    // below is for the status bar of react navigation bar
+    >
+      <TabBar
+        {...props}
+        indicatorStyle={styles.tabIndicator}
+        style={styles.tabBar}
+        labelStyle={styles.tabLabel}
+      />
+    </Tooltip>
+
+
   );
 
 
-  return (<ImageBackground
-    source={require('../assets/images/crs.png')}
-    style={{ width: "100%", height: "100%" }}
-  >
 
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-      <Cabeza />
-      <Modalize
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: Color.background }}>
+
+      <Cabeza tittle="Tareas" close={closeTooltipHeader} />
+      <View style={{ marginHorizontal: 30 }}>
+        <Animated.View >
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("HomeTask")
+          }}>
+            <Text style={{ color: "#DBDBDB", fontSize: 40 }}>Tareas</Text>
+
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View  >
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("MissionsHome")
+          }}>
+            <Text style={{ color: "#C889FF", fontSize: 40 }}>Misiones</Text>
+
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View  >
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("Discovery")
+          }}>
+            <Text style={{ color: "#DBDBDB", fontSize: 40 }}>Explorar</Text>
+
+          </TouchableOpacity>
+        </Animated.View>
+        <TouchableOpacity onPress={() => {
+          navigation.navigate("Discovery")
+        }}>
+          <Image source={require('../assets/images_black/abajo.png')} style={{ width: 84, height: 84 }} />
+
+        </TouchableOpacity>
+
+      </View>
+      <Missions estado={0} />
+      {/* <TouchableOpacity onPress={() => {
+        const clean = async () => {
+          try {
+            await AsyncStorage.clear();
+            console.log("AsyncStorage borrado");
+          } catch (error) {
+            console.error("Error al borrar en AsyncStorage:", error);
+          }
+        };
+        return clean();
+      }}>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          
+         
+        </View>
+      </TouchableOpacity> */}
+
+
+      {/* <Modalize
         panGestureEnabled={false}
-
         modalStyle={{
-          borderTopLeftRadius: 60,
-          borderTopRightRadius: 60
+          borderTopLeftRadius: 40,
+          borderTopRightRadius: 40
         }}
         withHandle={false}
-        alwaysOpen={600}
-        scrollViewProps={{ showsVerticalScrollIndicator: false }}
+        alwaysOpen={desiredHeight}
+        scrollViewProps={{
+          showsVerticalScrollIndicator: false,
+          nestedScrollEnabled: true, // Enable nested scrolling if possible
+        }}
       >
         <View style={{
           flexDirection: "row",
           marginHorizontal: 30,
-          marginTop: 40
+          marginTop: 30,
         }}>
-          <Image
-            source={require('../assets/images/a.png')}
-            style={{
-              height: 50,
-              width: 50,
-              borderWidth: 2,
-              borderColor: "#fbfaf6",
-              borderRadius: 50,
-            }}
-          />
+
+
           <View style={{ marginHorizontal: 20 }}>
             <Text style={{
               color: "#345c74",
               fontFamily: "Bold",
               fontSize: 18
-            }}>{currentUser.nombre} {currentUser.apellidos} </Text>
+            }}>
+              {
+                capitalizeInitials(currentUser.nombre + " " + currentUser.apellidos)
+              }
+            </Text>
             <Text style={{
               color: "#f58084",
               fontFamily: "Medium",
               fontSize: 12
             }}>
-              {perfilNombre(currentUser.idPerfil)} , {currentUser.email}
+              {perfilNombre(currentUser.idPerfil)}, {currentUser.email}
+
             </Text>
           </View>
-          <TouchableOpacity 
-          onPress={() => {
-            navigation.navigate("Profile")
-            
-          }}
+          <TouchableOpacity
+            onPress={() => {
+              navigation.navigate("Profile")
+
+            }}
             style={{
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#fff2f2",
-            width: 40,
-            height: 40,
-            borderRadius: 40
-          }}>
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#fff2f2",
+              width: 40,
+              height: 40,
+              borderRadius: 40
+            }}>
             <Image
               source={require('../assets/images/a2.png')}
             />
-        </TouchableOpacity>
-      </View>
-      <View style={{ height: 1000 }}>
-
-        {
-          isLoading ?
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="blue" />
-            </View> :
-            <TabView
-              navigationState={{ index, routes }}
-              renderScene={renderScene}
-              onIndexChange={setIndex}
-              initialLayout={{ width: layout.width }}
-              renderTabBar={renderTabBar}
-            />
-        }
+          </TouchableOpacity>
+        </View>
+        <View style={{ height: 900 }}>
 
 
-
-
-      </View>
-
-      <View
-        style={{
-          flexDirection: "row",
-          // paddingVertical: 5,
-          backgroundColor: "#fff2f2",
-          marginHorizontal: 20,
-          paddingVertical: 15,
-          alignItems: "center",
-          borderRadius: 10,
-          justifyContent: "center"
-        }}
-      >
-        <Text style={{
-          color: "#f58084",
-          fontFamily: "Bold",
-          fontSize: 13,
-          marginRight: 5
-        }}>Resume last lesson</Text>
-        <Image source={require('../assets/images/a2.png')} />
-      </View>
-    </Modalize>
-  </SafeAreaView>
-  </ImageBackground >
-
+          <TabView
+            navigationState={{ index, routes }}
+            renderScene={renderScene}
+            onIndexChange={setIndex}
+            initialLayout={{ width: layout.width }}
+            renderTabBar={renderTabBar}
+          />
+        </View>
+      </Modalize> */}
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
   loaderContainer: {
     flex: 1,
-    top: -500,
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',

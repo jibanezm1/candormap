@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import Button from '../Buttons/Button';
-import { GlobalStyles } from '@src/themes';
+import GlobalStyles from '../../../styles/GlobalStyles';
 import Input, { InputProps } from './Input';
-import Icon from '../Icon';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface PickerOption {
   label: string;
@@ -44,7 +44,7 @@ const Picker: React.FC<PickerProps> = ({ options, onChange, ...props }) => {
         />
         <View style={{ position: 'absolute', marginTop: 25, right: 15 }}>
           <Icon
-            name={modalVisible ? 'ChevronUp' : 'ChevronDown'}
+            name={modalVisible ? 'today-sharp' : 'today-sharp'}
             color="#626262"
             size={25}
           />

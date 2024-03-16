@@ -17,7 +17,7 @@ const BaseAppScreen: React.FC<BaseAppScreenProps> = ({
     <>
       <FocusAwareStatusBar {...statusBarProps} />
       <SafeAreaView
-        style={[{ flex: 1, backgroundColor: 'white' }, style]}
+        style={[{ flex: 1, backgroundColor: '#18191C' }, style]}
         {...props}
       >
         {children}

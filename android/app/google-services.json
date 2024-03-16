@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "369808754736",
+    "project_id": "candormap-cbdd2",
+    "storage_bucket": "candormap-cbdd2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369808754736:android:4afd61e274a008151ac5f5",
+        "android_client_info": {
+          "package_name": "com.candormap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDm1VpxQzmxEAI9iGworyl6z8r2eYq16D8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

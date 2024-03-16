@@ -1,83 +1,124 @@
 import React, { useState } from 'react';
 import {
-    ImageBackground, SafeAreaView, StatusBar, StyleSheet, View, Text, TouchableOpacity,  ActivityIndicator
+    ImageBackground, StatusBar, Image, StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Share, Alert, Dimensions
 } from 'react-native';
 import { ScrollView } from 'react-native';
 
-import Icon2 from 'react-native-vector-icons/MaterialIcons';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+
+
 import COLORS from '../consts/Colors'; // Asegúrate de tener este archivo o ajusta los colores según tu esquema
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Cabeza from '../components/molecules/Header';
+const windowWidth = Dimensions.get('window').width;
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import IconN from 'react-native-vector-icons/SimpleLineIcons';
+import { Color, FontFamily } from '../styles/Global';
+import PrimaryButton from '../components/atoms/Buttons/PrimaryButton';
 
 const Questionnaire = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const data = route.params.cuestionarioData;
+    const description = route.params.description;
+
+    console.log(description);
+    const insets = useSafeAreaInsets();
+
     const [isLoading, setIsLoading] = useState(false);
 
     // Suponiendo que tienes una URL base e imagen por defecto para el fondo
     const baseUrl = 'https://candormap.cl/uploads/';
     const imageUrl = `${baseUrl}${data.imagenIcono}`;
+    const iconStyle = { padding: 0, color: 'black' };
 
-    const InstructionRow = ({ icon, text }) => (
-        <View style={styles.row}>
-            <Icon name={icon} size={30} color="white" style={styles.icon} />
-            <Text style={styles.description}>{text}</Text>
-        </View>
-    );
+    const onShare = async () => {
+
+        try {
+            const result = await Share.share({ message: "candormap://questionnaireDep?id=" + data.cuestionarioId });
+
+
+        } catch (error: any) {
+            Alert.alert(error.message);
+        }
+    };
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-            <StatusBar translucent backgroundColor="rgba(0,0,0,0)" />
-            <ImageBackground style={styles.imageBackground} imageStyle={{ opacity: 0.5 }} source={{ uri: imageUrl }}>
-                <View style={styles.imageDetails}>
-                    <Text style={styles.imageTitle}>{data.titulo}</Text>
-                </View>
-            </ImageBackground>
-            <View style={styles.detailsContainer}>
-                <ScrollView style={styles.scrollView}>
-                    <Text style={styles.missionInfoTitle}>Info del Cuestionario</Text>
-                    <Text style={styles.missionDescription}>
-                        Encuesta - Responde esta breve encuesta sobre: {data.titulo}.
-                    </Text>
-                    {/* Puedes agregar más InstructionRow con la información relevante */}
-                </ScrollView>
+        <SafeAreaView style={{ flex: 1, backgroundColor: Color.background }}>
+            <Cabeza tittle="Tareas" />
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+
+
+                <Image
+                    style={{ width: 300, height: 300, borderRadius: 150, borderWidth: 4, borderColor: "white" }}
+                    source={{ uri: imageUrl }}
+                />
             </View>
-            <View style={styles.footer}>
+            <View style={{ flex: 1, top: 30, marginHorizontal: 20 }}>
+                <Text style={{ color: "#C889FF", fontSize: 30, fontWeight: "500", fontFamily: FontFamily.robotoRegular, }}>{data.titulo}</Text>
+                <Text style={{ color: "#DBDBDB", fontSize: 20 }}>{`${data.tiempoEstimado ? data.tiempoEstimado : 1} min`}</Text>
+                <Text style={{ color: "#DBDBDB", fontSize: 15, fontWeight: "200", top: 10 }}>{data.descripcion}</Text>
+                <TouchableOpacity style={[styles.containers, { backgroundColor: Color.background, top: 30, borderRadius: 200, padding: 10, width: 50 }]}
+
+                    onPress={() => {
+                        onShare();
+                    }}
+                >
+                    <View style={styles.rightIcon}>
+                        <IconN name="paper-plane" size={24} color="white" />
+                    </View>
+                </TouchableOpacity>
+            </View>
+
+
+
+            <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
                 <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                     <Text
                         style={{
-                            fontSize: 18,
-                            fontWeight: 'bold',
+                            marginLeft: 20,
+                            fontSize: 30,
+                            fontWeight: '300',
                             color: COLORS.white,
                         }}>
                         ${data.valorMonetario}
                     </Text>
-                    <Text
-                        style={{
-                            fontSize: 12,
-                            fontWeight: 'bold',
-                            color: COLORS.grey,
-                            marginLeft: 2,
-                        }}>
-                        /Encuesta
-                    </Text>
+
                 </View>
+
+
                 <TouchableOpacity style={styles.bookNowBtn} onPress={() => {
                     setIsLoading(true);
                     navigation.navigate("HomeSurvey", { cuestionarioData: data });
                     setIsLoading(false);
                 }}>
-                    {isLoading ? <ActivityIndicator /> : <Text style={styles.footerText}>Comenzar ahora</Text>}
+                    {isLoading ? <ActivityIndicator /> : <Text style={styles.footerText}>Comenzar</Text>}
                 </TouchableOpacity>
             </View>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 
 const styles = StyleSheet.create({
+    containers: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFA000',
+        borderRadius: 5,
+        marginBottom: 1,
+        borderColor: "white",
+        borderStyle: "solid",
+    },
     row: {
         flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rightIcon: {
+        backgroundColor: '#282B32',
+        borderRadius: 50,
+        height: 50,
+        width: 50,
+        justifyContent: 'center',
         alignItems: 'center',
     },
     icon: {
@@ -127,7 +168,7 @@ const styles = StyleSheet.create({
     },
     footer: {
         flexDirection: 'row',
-        backgroundColor: COLORS.primary,
+        backgroundColor: Color.background,
         height: 70,
         justifyContent: 'center',
         alignItems: 'center',
@@ -138,15 +179,16 @@ const styles = StyleSheet.create({
     bookNowBtn: {
         height: 50,
         backgroundColor: COLORS.white,
-        borderRadius: 10,
+        borderRadius: 30,
+        marginRight: 30,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingHorizontal: 20,
+        paddingHorizontal: windowWidth * 0.080,
     },
     footerText: {
-        color: COLORS.primary,
+        color: "black",
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: '300',
     },
 });
 

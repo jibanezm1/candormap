@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { View, useWindowDimensions, StyleSheet, ActivityIndicator, ImageBackground, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, useWindowDimensions, StyleSheet, Animated, ImageBackground, Image, Dimensions, Platform, Alert, TouchableOpacity } from 'react-native';
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import Tasks from './Tasks';
 import axios from 'axios';
@@ -9,20 +9,57 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Cabeza from '../components/molecules/Header';
 import { Modalize } from 'react-native-modalize';
+import Tooltip from "react-native-walkthrough-tooltip";
 
 import { Text } from 'react-native-paper';
 import colors from '../styles/Colors';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+
+import { capitalizeInitials } from '../utils/aux';
+import Icon from 'react-native-vector-icons/Ionicons';
+import TooltipButton from '../components/atoms/Tooltip';
+import { ScreenWidth } from 'react-native-elements/dist/helpers';
+import { ScrollView } from 'react-native-gesture-handler';
+import { Color } from '../styles/Global';
+
+
+const windowHeight = Dimensions.get('window').height;
+const desiredHeight = windowHeight * 0.55; // 80% de la altura de la pantalla
 
 const FirstRoute = (props) => (
-  <Tasks data={props.data} estado={true} />
+  <Tasks data={props.data} estado={true} loading={props.loading} />
 );
 
 const SecondRoute = (props) => (
-  <Tasks data={props.data} estado={false} />
+  <Tasks data={props.data} estado={false} loading={props.loading} />
 );
 
 export default function HomeTask() {
+
+
+  const [logoAnimation] = useState(new Animated.Value(0)); // Valor animado para la animación
+
+  useEffect(() => {
+    // Iniciar la animación cuando el componente se monta
+    Animated.timing(logoAnimation, {
+      toValue: 1,
+      duration: 600, // Duración en milisegundos
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const logoStyle = {
+    transform: [
+      {
+        translateY: logoAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-100, 0], // Comienza 100 píxeles arriba y se mueve a su posición original
+        }),
+      },
+    ],
+  };
+  const [showTooltip, setShowTooltip] = React.useState(false);
+  const [secondshowTooltip, setSecondShowTooltip] = React.useState(false);
+
   const layout = useWindowDimensions();
   const [isLoading, setIsLoading] = React.useState(true);
   React.useEffect(() => {
@@ -53,12 +90,12 @@ export default function HomeTask() {
     return perfiles[idPerfil] || 'Perfil no encontrado';
 
   };
+
+
   React.useEffect(() => {
     const fetchData = async () => {
       try {
         const user = await AsyncStorage.getItem('currentUser');
-
-
         if (user) {
           setCurrentUser(JSON.parse(user));
         }
@@ -68,6 +105,44 @@ export default function HomeTask() {
     };
     fetchData();
   }, []);
+
+  React.useEffect(() => {
+    const checkTooltipShown = async () => {
+      try {
+        const tooltipShown = await AsyncStorage.getItem('tooltipShown1');
+        console.log("tooltipShown1: ", tooltipShown);
+        if (!tooltipShown) {
+          setShowTooltip(false);
+        }
+      } catch (error) {
+        console.error("Error al leer el valor de AsyncStorage:", error);
+      }
+    };
+
+    checkTooltipShown();
+  }, []);
+
+
+  const closeTooltip = async () => {
+    try {
+      await AsyncStorage.setItem('tooltipShown1', 'true');
+      setShowTooltip(false);
+    } catch (error) {
+      console.error("Error al guardar en AsyncStorage:", error);
+    }
+  };
+  const closeTooltipHeader = async () => {
+    try {
+      await AsyncStorage.setItem('tooltipShown2', 'true');
+      setSecondShowTooltip(false);
+      setShowTooltip(true);
+    } catch (error) {
+      console.error("Error al guardar en AsyncStorage:", error);
+    }
+  };
+
+
+
 
   const fetchDataFromAPI = React.useCallback(() => {
     setLoading(true);
@@ -101,151 +176,90 @@ export default function HomeTask() {
   const renderScene = ({ route }) => {
     switch (route.key) {
       case 'first':
-        return <FirstRoute data={data} />;
+        return <FirstRoute data={data} loading={loading} />;
       case 'second':
-        return <SecondRoute data={nodata} />;
+        return <SecondRoute data={nodata} loading={loading} />;
       default:
         return null;
     }
   };
 
   const renderTabBar = (props) => (
-    <TabBar
-      {...props}
-      indicatorStyle={styles.tabIndicator}
-      style={styles.tabBar}
-      labelStyle={styles.tabLabel}
-    />
+
+    <Tooltip
+      isVisible={showTooltip}
+      content={
+        <TooltipButton index={1} content="En estas pestañas podras revisar cada una de tus tareas" onPress={closeTooltip} />
+      }
+      childContentSpacing={5}
+      contentStyle={{
+        backgroundColor: "white",
+        height: 80,
+        padding: Platform.OS === 'android' ? 0 : 10,
+        width: ScreenWidth - 30,
+        borderRadius: 10
+      }}
+      placement="top"
+      onClose={() => closeTooltip()}
+      useInteractionManager={true} // need this prop to wait for react navigation
+    // below is for the status bar of react navigation bar
+    >
+      <TabBar
+        {...props}
+        indicatorStyle={styles.tabIndicator}
+        style={styles.tabBar}
+        labelStyle={styles.tabLabel}
+      />
+    </Tooltip>
+
+
   );
 
-  return (<ImageBackground
-    source={require('../assets/images/crs.png')}
-    style={{ width: "100%", height: "100%" }}
-  >
-
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }}>
-      <Cabeza />
-
-      <View style={{ flex: 1, alignItems: 'center' }}>
-        <Image
-          source={require('../assets/images/logos.png')}
-          style={{
-            height: 170, // Puedes ajustar esto según necesites
-            width: windowWidth * 0.8, // 80% del ancho de la pantalla
-            resizeMode: 'contain', // Asegura que la imagen se ajuste dentro de las dimensiones
-          }}
-        />
-       
-      </View>
 
 
-      <Modalize
-        panGestureEnabled={false}
 
-        modalStyle={{
-          borderTopLeftRadius: 60,
-          borderTopRightRadius: 60
-        }}
-        withHandle={false}
-        alwaysOpen={400}
-        scrollViewProps={{
-          showsVerticalScrollIndicator: false,
-          nestedScrollEnabled: true, // Enable nested scrolling if possible
-        }}
-      >
-        <View style={{
-          flexDirection: "row",
-          marginHorizontal: 30,
-          marginTop: 40
-        }}>
-          <Image
-            source={require('../assets/images/a.png')}
-            style={{
-              height: 50,
-              width: 50,
-              borderWidth: 2,
-              borderColor: "#fbfaf6",
-              borderRadius: 50,
-            }}
-          />
-          <View style={{ marginHorizontal: 20 }}>
-            <Text style={{
-              color: "#345c74",
-              fontFamily: "Bold",
-              fontSize: 18
-            }}>{currentUser.nombre} {currentUser.apellidos} </Text>
-            <Text style={{
-              color: "#f58084",
-              fontFamily: "Medium",
-              fontSize: 12
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: Color.background }}>
+
+      <Cabeza tittle="Tareas" />
+      <ScrollView>
+        <View style={{ marginHorizontal: 30 }}>
+          <Animated.View style={logoStyle}>
+            <TouchableOpacity onPress={() => { navigation.navigate("HomeTask") }} >
+              <Text style={{ color: "#C889FF", fontSize: 40 }}>Tareas</Text>
+
+            </TouchableOpacity>
+          </Animated.View>
+          <Animated.View style={logoStyle}>
+            <TouchableOpacity onPress={() => {
+              navigation.navigate("MissionsHome")
             }}>
-              {perfilNombre(currentUser.idPerfil)} , {currentUser.email}
+              <Text style={{ color: "#DBDBDB", fontSize: 40 }}>Misiones</Text>
 
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("Profile")
-
-            }}
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "#fff2f2",
-              width: 40,
-              height: 40,
-              borderRadius: 40
+            </TouchableOpacity>
+          </Animated.View>
+          <Animated.View style={logoStyle}>
+            <TouchableOpacity onPress={() => {
+              navigation.navigate("Discovery")
             }}>
-            <Image
-              source={require('../assets/images/a2.png')}
-            />
-        </TouchableOpacity>
-      </View>
-      <View style={{ height: 1000 }}>
+              <Text style={{ color: "#DBDBDB", fontSize: 40 }}>Explorar</Text>
+            </TouchableOpacity>
 
-        {
-          isLoading ?
-            <View style={styles.loaderContainer}>
-              <ActivityIndicator size="large" color="blue" />
-            </View> :
-            <TabView
-              navigationState={{ index, routes }}
-              renderScene={renderScene}
-              onIndexChange={setIndex}
-              initialLayout={{ width: layout.width }}
-              renderTabBar={renderTabBar}
-            />
-        }
+          </Animated.View>
+          <Animated.View style={logoStyle}>
+            <TouchableOpacity onPress={() => {
+              navigation.navigate("MissionsHome")
+            }}>
+              <Image source={require('../assets/images_black/abajo.png')} style={{ width: 84, height: 84 }} />
 
+            </TouchableOpacity>
+          </Animated.View>
 
+        </View>
+        <Tasks data={data} estado={true} loading={loading} />
+      </ScrollView>
 
-
-      </View>
-
-      <View
-        style={{
-          flexDirection: "row",
-          // paddingVertical: 5,
-          backgroundColor: "#fff2f2",
-          marginHorizontal: 20,
-          paddingVertical: 15,
-          alignItems: "center",
-          borderRadius: 10,
-          justifyContent: "center"
-        }}
-      >
-        <Text style={{
-          color: "#f58084",
-          fontFamily: "Bold",
-          fontSize: 13,
-          marginRight: 5
-        }}>Resume last lesson</Text>
-        <Image source={require('../assets/images/a2.png')} />
-      </View>
-    </Modalize>
-  </SafeAreaView>
-  </ImageBackground >
-
+    </SafeAreaView >
   )
 }
 

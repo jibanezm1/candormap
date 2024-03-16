@@ -1,30 +1,35 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Image, ImageSourcePropType, StyleSheet, Alert, Animated } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 
 type TaskItemProps = {
     title: string;
-    description: string;
-    price: number;
-    duration: string;
-    imageSource: string;
+    imageSource: string | ImageSourcePropType;
+    onPress: () => void;
 };
 
-const MenuItem: React.FC<TaskItemProps> = ({ title, imageSource }) => {
+const MenuItem: React.FC<TaskItemProps> = ({ title, imageSource, onPress }) => {
+    const [fadeAnim] = useState(new Animated.Value(0)); // Valor inicial para la animación
 
-    // Función para manejar el click en el item
-    const handleItemClick = () => {
-        Alert.alert('Aviso', 'Esta funcionalidad estará disponible próximamente');
-    };
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+        }).start();
+    }, []);
+
+    const source: ImageSourcePropType = typeof imageSource === 'string'
+        ? { uri: imageSource }
+        : imageSource;
 
     return (
-        <TouchableOpacity onPress={handleItemClick}>
-            <View style={styles.container} >
-            <Image source={imageSource} style={styles.image} />
-            <View style={styles.details}>
-                <Text style={styles.title}>{title}</Text>
-            </View>
-        </View>
+        <TouchableOpacity onPress={onPress}>
+            <Animated.View style={{ ...styles.container, opacity: fadeAnim }}>
+                <View style={styles.details}>
+                    <Text style={styles.title}>{title}</Text>
+                </View>
+            </Animated.View>
         </TouchableOpacity>
     );
 };
@@ -32,9 +37,10 @@ const MenuItem: React.FC<TaskItemProps> = ({ title, imageSource }) => {
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
+        backgroundColor: '#272A31',
         padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ddd',
+         borderRadius:60,
+        marginVertical:10
     },
     image: {
         width: 40,
@@ -43,11 +49,13 @@ const styles = StyleSheet.create({
     },
     details: {
         flex: 1,
-        top: 10,
-    },
+        paddingVertical: 8,
+     },
     title: {
-        fontSize: 14,
-        fontWeight: 'bold',
+        fontSize: 18,
+        fontWeight: '400',
+        textAlign: 'center',
+        color: 'white',
     },
     description: {
         fontSize: 14,

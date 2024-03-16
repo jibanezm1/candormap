@@ -9,20 +9,23 @@ export interface InputProps extends Omit<TextInputProps, 'theme'> {
 }
 
 const Input: React.FC<InputProps> = ({ errorMessage, innerRef, ...props }) => {
+  
   return (
     <>
       <TextInput
         ref={innerRef}
         mode="outlined"
-        activeOutlineColor="white"
-        style={{color: 'white'}}
-        label={props.label}
+        outlineColor='#272A31'
+        activeOutlineColor="#272A31"
+        style={{ color: 'white', marginVertical: 10, height:65, width: "100%", textAlign: 'center' }} // Ajustar el textAlign a 'center'
         textColor="white"
+
         theme={{
-          roundness: 5,
+          roundness: 60,
+
           colors: {
             error: Colors.error,
-            background: '#30023e',  // Reemplaza 'morado' con el valor hexadecimal adecuado.
+            background: '#272A31',  // Reemplaza 'morado' con el valor hexadecimal adecuado.
             surface: '#30023e',     // Reemplaza 'morado' con el valor hexadecimal adecuado.
             primary: 'white',      // Esto cambia el color del label y el borde a blanco.
             text: 'white'           // Esto cambia el color del texto a blanco.

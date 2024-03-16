@@ -2,8 +2,8 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   users: [],
-  currentUser: null, // Aquí almacenaremos los detalles del usuario actualmente logeado
-  error: null, // Aquí almacenaremos información sobre errores de inicio de sesión
+  currentUser: null,
+  error: null,
 };
 
 const usuariosSlice = createSlice({
@@ -18,15 +18,18 @@ const usuariosSlice = createSlice({
     },
     loginUser: (state, action) => {
       state.currentUser = action.payload;
-      state.error = null; // Limpia el error si el inicio de sesión fue exitoso
+      state.error = null;
     },
     logoutUser: (state) => {
       state.currentUser = null;
-      state.error = null; // Limpia el error al cerrar sesión
+      state.error = null;
+    },
+    updateUserProfile: (state, action) => {
+      state.currentUser = action.payload;
     },
   },
 });
 
-export const { setUsers, addUser, loginUser, logoutUser } = usuariosSlice.actions;
+export const { setUsers, addUser, loginUser, logoutUser, updateUserProfile } = usuariosSlice.actions;
 
 export default usuariosSlice.reducer;

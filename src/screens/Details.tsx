@@ -7,8 +7,12 @@ import {
     View,
     Text,
     TouchableOpacity,
+    Dimensions,
+    Share,
+    Image
 } from 'react-native';
 import { ScrollView } from 'react-native';
+import IconN from 'react-native-vector-icons/SimpleLineIcons';
 
 import Icon2 from 'react-native-vector-icons/MaterialIcons';
 import COLORS from '../consts/Colors';
@@ -17,6 +21,10 @@ import axios from 'axios';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ActivityIndicator } from 'react-native-paper';
 import MapView, { Marker } from 'react-native-maps';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Cabeza from '../components/molecules/Header';
+import { Color, FontFamily } from '../styles/Global';
+const windowWidth = Dimensions.get('window').width;
 
 const DetailsScreen = () => {
     const route = useRoute();
@@ -31,8 +39,20 @@ const DetailsScreen = () => {
     const navigation = useNavigation();
     const baseUrl = 'https://candormap.cl/uploads/';
     const imageUrl = `${baseUrl}${mision.instrucciones.imagen}`;
+    const insets = useSafeAreaInsets();
+    const iconStyle = { padding: 0, color: 'black' };
 
-    console.log(route.params)
+    const onShare = async () => {
+
+        try {
+            const result = await Share.share({ message: "candormap://questionnaireDep?id=" + data.cuestionarioId });
+
+
+        } catch (error: any) {
+            Alert.alert(error.message);
+        }
+    };
+
     useEffect(() => {
         // URL de la API que proporciona los datos
         const apiUrl = 'https://candormap.cl/api/cuestionario?id=' + cuestionarioData.idCuestionario;
@@ -51,154 +71,108 @@ const DetailsScreen = () => {
             });
     }, []);
 
-    const InstructionRow = ({ icon, text }) => (
-        <View style={style.row}>
-            <Icon name={icon} size={30} color="white" style={style.icon} />
-            <Text style={style.description}>{text}</Text>
-        </View>
-    );
 
-    return (<SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
-        <StatusBar translucent backgroundColor="rgba(0,0,0,0)" />
-        <ImageBackground style={{ flex: 0.7, backgroundColor: 'rgb(45, 46, 48)' }} imageStyle={{ opacity: 0.5 }} source={{ uri: imageUrl }}>
-
-
-            <View style={style.imageDetails}>
-                <Text
-                    style={{
-                        width: '70%',
-                        fontSize: 25,
-                        fontWeight: 'bold',
-                        color: COLORS.white,
-                        marginBottom: 20,
-                    }}>
-                    {mision.titulo}
-                </Text>
-
-
+    return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: Color.background }}>
+            <Cabeza tittle="Tareas" />
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+                <Image
+                    style={{ width: 200, height: 200, borderRadius: 150, borderWidth: 4, borderColor: "white" }}
+                    source={{ uri: imageUrl }}
+                />
             </View>
-        </ImageBackground>
-        <View style={style.detailsContainer}>
-            <View style={style.iconContainer}>
-                <Icon2 name="favorite" color={COLORS.red} size={30} />
+            <View style={{ flex: 1, top: 30, marginHorizontal: 20 }}>
+                <Text style={{ color: "#C889FF", fontSize: 30, fontWeight: "300", fontFamily: FontFamily.robotoRegular, }}>{data.titulo}</Text>
+                <Text style={{ color: "#DBDBDB", fontSize: 20 }}>{`${data.tiempoEstimado ? data.tiempoEstimado : 1} min`}</Text>
+                <Text style={{ color: "#DBDBDB", fontSize: 15, fontWeight: "200", top: 10 }}>{mision.descripcion}</Text>
+                <TouchableOpacity style={[styles.containers, { backgroundColor: Color.background, top: 30, borderRadius: 200, padding: 10, width: 50 }]}
+
+                    onPress={() => {
+                        onShare();
+                    }}
+                >
+                    <View style={styles.rightIcon}>
+                        <IconN name="paper-plane" size={24} color="white" />
+                    </View>
+                </TouchableOpacity>
             </View>
-            <ScrollView style={{
-                // backgroundColor:"red",
-                paddingHorizontal: 10
 
-            }}>
 
-                <Text style={{ marginTop: 5, fontWeight: 'bold', fontSize: 20 }}>
-                    Info de la Mision
-                </Text>
-                <Text style={{ marginTop: 5, lineHeight: 22 }}>{mision.descripcion}</Text>
-                <View style={{ flexDirection: 'row' }}>
 
+            <View style={[styles.footer, { paddingBottom: insets.bottom }]}>
+                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
                     <Text
                         style={{
-
-                            fontSize: 20,
-                            fontWeight: 'bold',
-                            color: COLORS.primary,
+                            marginLeft: 30,
+                            fontSize: 30,
+                            fontWeight: '300',
+                            color: COLORS.white,
                         }}>
-                        <View>
-                            <InstructionRow icon="timer-outline" text={`${mision.tiempo} minutos para completar la tarea`} />
-                            <InstructionRow icon="run-fast" text={`Requiere desplazarse.`} />
-                            <InstructionRow icon="camera-marker-outline" text={`${instrucciones.requisitos}.`} />
-                            {/* <MapView
-                                style={{ height: 100, width: 600}}
-                                initialRegion={{
-                                    latitude: parseFloat(mision.lat),
-                                    longitude: parseFloat(mision.lng),
-                                    latitudeDelta: 0.0922,
-                                    longitudeDelta: 0.0421,
-                                }}
-                            >
-                                <Marker
-                                    coordinate={{ latitude: parseFloat(mision.lat), longitude: parseFloat(mision.lng) }}
-                                    title={mision.titulo}
-                                />
-                            </MapView> */}
-                        </View>
+                        ${data.valorMonetario}
                     </Text>
 
                 </View>
 
-            </ScrollView>
-        </View>
-        <View style={style.footer}>
-            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                <Text
-                    style={{
-                        fontSize: 18,
-                        fontWeight: 'bold',
-                        color: COLORS.white,
-                    }}>
-                    ${mision.recompensa}
-                </Text>
-                <Text
-                    style={{
-                        fontSize: 12,
-                        fontWeight: 'bold',
-                        color: COLORS.grey,
-                        marginLeft: 2,
-                    }}>
-                    /Mision
-                </Text>
+
+                <TouchableOpacity style={styles.bookNowBtn} onPress={() => {
+                    setIsLoading(true);
+                    navigation.navigate("HomeSurveyMissions", { cuestionarioData: tasksData, misiones: mision.idMision });
+                    setIsLoading(false);
+                }}>
+                    {isLoading ? <ActivityIndicator /> : <Text style={styles.footerText}>Comenzar ahora</Text>}
+                </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={() => {
-                return navigation.navigate("HomeSurveyMissions", { cuestionarioData: tasksData, misiones: mision.idMision })
+        </SafeAreaView >
+    );
 
-
-            }} >
-                <View style={style.bookNowBtn}>
-
-                    {isLoading && <ActivityIndicator />}
-                    {!isLoading && <Text
-                        style={{ color: COLORS.primary, fontSize: 16, fontWeight: 'bold' }}>
-                        Ingresar
-                    </Text>}
-
-
-                </View>
-            </TouchableOpacity>
-        </View>
-    </SafeAreaView>);
 
 };
-const style = StyleSheet.create({
+
+const styles = StyleSheet.create({
+    containers: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFA000',
+        borderRadius: 5,
+        marginBottom: 1,
+        borderColor: "white",
+        borderStyle: "solid",
+    },
+    rightIcon: {
+        backgroundColor: '#282B32',
+        borderRadius: 50,
+        height: 50,
+        width: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     row: {
         flexDirection: 'row',
+        alignItems: 'center',
     },
     icon: {
-        marginTop: 9,
         marginRight: 10,
-        color: 'black',
     },
     description: {
         fontSize: 15,
-        marginVertical: 10,
+        color: 'black',
     },
-    bookNowBtn: {
-        height: 50,
-        width: 150,
-        backgroundColor: COLORS.white,
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
+    imageBackground: {
+        flex: 0.7,
+        backgroundColor: 'rgb(45, 46, 48)',
     },
-
-    iconContainer: {
-        height: 60,
-        width: 60,
+    imageDetails: {
+        padding: 20,
         position: 'absolute',
-        top: -30,
-        backgroundColor: COLORS.white,
-        borderRadius: 30,
-        right: 20,
-        elevation: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
+        bottom: 30,
+        width: '100%',
+    },
+    imageTitle: {
+        width: '70%',
+        fontSize: 25,
+        fontWeight: 'bold',
+        color: COLORS.white,
+        marginBottom: 20,
     },
     detailsContainer: {
         top: -30,
@@ -209,30 +183,42 @@ const style = StyleSheet.create({
         backgroundColor: COLORS.white,
         flex: 0.3,
     },
-    header: {
-        marginTop: 60,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
+    scrollView: {
+        paddingHorizontal: 10,
     },
-    imageDetails: {
-        padding: 20,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        position: 'absolute',
-        bottom: 30,
+    missionInfoTitle: {
+        marginTop: 5,
+        fontWeight: 'bold',
+        fontSize: 20,
+    },
+    missionDescription: {
+        marginTop: 5,
+        lineHeight: 22,
     },
     footer: {
         flexDirection: 'row',
-        backgroundColor: COLORS.primary,
-        height: 70,
-        justifyContent: 'space-between',
+        backgroundColor: COLORS.background,
+        height: 120,
+        justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 20,
         borderTopLeftRadius: 15,
         borderTopRightRadius: 15,
     },
+    bookNowBtn: {
+        height: 50,
+        backgroundColor: COLORS.white,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: windowWidth * 0.040,
+    },
+    footerText: {
+        color: COLORS.primary,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });
+ 
 
 export default DetailsScreen;

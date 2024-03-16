@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert, Dimensions } from 'react-native';
 import { Color, FontSize, FontFamily, Padding, Border } from "../styles/Global";
 import BaseAppScreen from '../templates/BaseAppScreen';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../redux/slices/usuariosSlice';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
+import PrimaryButton from '../components/atoms/Buttons/PrimaryButton';
 
 
 // SCREEN DE BIENVENIDA PARA DERIVAR A INICIO DE SESION O REGISTRO DE USUARIO
@@ -17,7 +18,7 @@ const Task = () => {
     const navigation = useNavigation();
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch();
-    const checkAndRequestPermission = async (permission) => {
+    const checkAndRequestPermission = async (permission: any) => {
         const result = await check(permission);
 
         switch (result) {
@@ -56,6 +57,15 @@ const Task = () => {
         // ...
     }, []);
 
+    const checkBiometricEnabled = async () => {
+        try {
+            const biometricEnabled = await AsyncStorage.getItem('biometricEnabled');
+            return biometricEnabled === 'true';
+        } catch (error) {
+            console.error("Error al leer de AsyncStorage", error);
+            return false;
+        }
+    };
 
     const checkCurrentUser = async () => {
         try {
@@ -64,12 +74,13 @@ const Task = () => {
             if (user) {
                 dispatch(loginUser(user));
 
-                navigation.navigate('BottomTabNavigator', { screen: 'HomeTask' });
+                // Verifica si la autenticación biométrica está habilitada
+                navigation.navigate('Login');
             }
         } catch (error) {
             console.error("Error al leer el valor de AsyncStorage:", error);
         } finally {
-            setLoading(false);  // ¡Importante! Esto detiene el loading al final de la función, sin importar si fue exitoso o hubo un error.
+            setLoading(false); // Detiene el indicador de carga
         }
     };
 
@@ -79,53 +90,48 @@ const Task = () => {
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <ActivityIndicator size="large" color="#4931a1" />
                 </View>
-            ) : <View style={styles.container}>
+            ) : <View style={[styles.container, { top: Platform.OS == 'android' ? 50 : 20, }]}>
+                <View style={{ flexDirection: "row" }}>
+                    <Image
+
+                        style={styles.logoIcon}
+                        source={require("../assets/images_black/icono.png")}
+                    />
+                    <Text style={{ color: "#D0D4E3", fontWeight: "500", paddingVertical: 2, paddingHorizontal: 10, fontSize: 12 }}>Candormap</Text>
+
+                </View>
                 <Image
-                    style={styles.image}
-                    resizeMode="cover"
-                    source={require("../assets/pair.png")}
+                    style={[styles.image, { marginTop: 50, paddingHorizontal: 30, marginBottom: 110 }]}
+                    resizeMode="contain"
+                    source={require("../assets/images_black/monedas.png")}
                 />
-                <Text style={styles.titulo}>¡Bienvenido a Candormap!</Text>
-                <Text style={styles.subtitulo}>
-                    Únete a nuestra comunidad mundial y empieza a ganar dinero hoy mismo.
-                </Text>
-                <Text style={styles.secondaryText}>Iniciar sesión con</Text>
-                <View style={{ height: 100, width: "100%", top: 40 }}>
-                    <TouchableOpacity onPress={() => Alert.alert("Proximamente")} style={[styles.official, styles.officialBorder]}>
-                        <Image
-                            style={styles.logoIcon}
-                            resizeMode="cover"
-                            source={require("../assets/logo1.png")}
-                        />
-                        <Text style={[styles.continueWithFacebook, styles.withTypo]}>
-                            Continue with Facebook
+
+                <View style={[styles.container, { marginHorizontal: 20 }]}>
+
+                    <Image
+                        style={[{ paddingHorizontal: 160, width: 51, height: 51 }]}
+                        resizeMode="contain"
+                        source={require("../assets/images_black/persona.png")}
+                    />
+
+                    <View style={{ marginTop: 25, paddingHorizontal: 50 }}>
+                        <Text style={[styles.subtitulo,]}>Hola!</Text>
+                        <Text style={styles.subtitulo}>
+                            ¿listo para unirte?
                         </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => Alert.alert("Proximamente")} style={[styles.official2, styles.officialBorder]}>
-                        <Image
-                            style={styles.logoIcon}
-                            resizeMode="cover"
-                            source={require("../assets/logo.png")}
-                        />
-                        <Text style={[styles.signInWith, styles.withTypo]}>
-                            Sign in with Apple
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={{ width: "82%", top: 45 }}>
-                    <View style={[styles.official3, styles.containerButtons]}>
-                        <TouchableOpacity style={styles.button}
-                            onPress={() => navigation.navigate("Login")}
-                        >
-                            <Text style={{ color: "black" }}>Tengo Cuenta</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.button1}
-                            onPress={() => navigation.navigate("Register")}
-                        >
-                            <Text style={{ color: "white" }}>Soy Nuevo</Text>
-                        </TouchableOpacity>
+                        <Text style={[styles.secondaryText, { marginTop: 15, marginHorizontal: 20 }]}>Únete a nuestra comunidad y gana dinero hoy mismo</Text>
+                        <View style={{ marginTop: 15, paddingHorizontal: 30 }}>
+                            <PrimaryButton title="Iniciar" onPress={() => navigation.navigate("WelcomeSelector")} />
+
+
+                        </View>
+
                     </View>
+
                 </View>
+
+
+
 
             </View>}
         </BaseAppScreen>
@@ -137,14 +143,11 @@ const Task = () => {
 const styles = StyleSheet.create({
 
     container: {
-        backgroundColor: "white",
         flex: 1,
-        top: Platform.OS == 'android' ? 100 : 20,
-        justifyContent: 'flex-start',
-        alignItems: 'center',
+         alignItems: 'center',
     },
     image: {
-        width: "50%",
+        width: "40%",
         top: 30,
         marginBottom: 50
     },
@@ -155,19 +158,16 @@ const styles = StyleSheet.create({
         fontFamily: FontFamily.fontsBTNText,
     },
     subtitulo: {
-        top: 10,
-        color: Color.designDefault,
+        color: "#F6F6F6",
         lineHeight: 30,
-        width: "80%",
         textAlign: "center",
         fontFamily: FontFamily.proximaNovaRegular,
-        fontSize: FontSize.size_base,
+        fontSize: 30,
     },
     secondaryText: {
-        top: 25,
+        textAlign: "center",
         color: Color.designLightGray,
-        textTransform: "uppercase",
-        fontSize: FontSize.size_sm,
+        fontSize: 12,
         fontFamily: FontFamily.proximaNovaRegular,
     },
     withTypo: {
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
         width: "80%",
     },
     button: {
-        borderWidth: 1,
+        backgroundColor: 'white',
         borderColor: "#4931a1",
         fontFamily: FontFamily.proximaNovaRegular,
-        paddingHorizontal: 26,
-        padding: 10,
-        borderRadius: 10
+        top: 50,
+        padding: 25,
+        borderRadius: 60
     },
     button1: {
         fontFamily: FontFamily.proximaNovaRegular,
@@ -196,8 +196,8 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     logoIcon: {
-        width: 40,
-        height: 40,
+        width: 20,
+        height: 20,
         borderRadius: Border.br_12xs,
         overflow: "hidden",
     },

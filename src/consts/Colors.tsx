@@ -7,6 +7,7 @@ const COLORS = {
     grey: '#dddedd',
     red: 'red',
     orange: '#f5a623',
+    background: '#18191C',
   };
   
   export default COLORS;

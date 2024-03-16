@@ -10,6 +10,12 @@ import { useSelector } from 'react-redux';
 import usuariosSlice from '../redux/slices/usuariosSlice';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { ActivityIndicator } from 'react-native';
+import { Color, FontFamily } from '../styles/Global';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Cabeza from '../components/molecules/Header';
+import { List, IconButton, useTheme } from 'react-native-paper';
+import Multiple from '../components/molecules/Multiple';
+import Single from '../components/molecules/Single';
 
 
 // SCREEN CON LA ENCUESTA 
@@ -34,7 +40,8 @@ const HomeSurvey = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [isLoading, setIsLoading] = useState(false);
     const [currentUser, setCurrentUser] = React.useState([]);  // <--- Estado para almacenar la data
-
+    const [expanded, setExpanded] = useState(false);
+    const { colors } = useTheme();
     useEffect(() => {
 
         const interval = setInterval(() => {
@@ -121,6 +128,11 @@ const HomeSurvey = () => {
 
     const sendSurveyData = async (mappedResponses: any) => {
         try {
+
+            if (!currentUser.idUsuario) {
+                Alert.alert("Error", "Usuario no identificado. Por favor, inicie sesión de nuevo.");
+                return;  // Detener la ejecución de la función si no hay idUsuario
+            }
             let formData = new FormData();
             formData.append(`idCuestionario`, data.cuestionarioId);
             formData.append(`idUsuario`, currentUser.idUsuario);
@@ -128,7 +140,7 @@ const HomeSurvey = () => {
             formData.append(`misiones`, misiones);
 
 
-            
+
             mappedResponses.forEach((response: any, index: number) => {
                 if (response.urlFoto) {
                     const fileName = response.urlFoto.split('/').pop();  // Extrae el nombre del archivo de la URI
@@ -254,101 +266,98 @@ const HomeSurvey = () => {
     });
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.title}>Encuesta</Text>
-            <Text style={styles.subtitle}>{data.titulo}</Text>
-            <Text style={styles.subtitle}>
-                {currentDate.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: 'long',
-                })} - {currentDate.toLocaleTimeString().slice(0, 5)}
-            </Text>
-            {surveyData.map((question) => (
-                <View style={{ padding: 10 }} key={question.id}>
-                    <Text style={styles.question}>{question.question}</Text>
-                    {question.type === 'multiple' && question.options.map((option) => (
-                        <TouchableOpacity
-                            key={option.id}
-                            style={[
-                                styles.option,
-                                question.selectedOptionIds.includes(option.id) && styles.selectedOption,
-                            ]}
-                            onPress={() => handleOptionSelect(question.id, option.id, question.type)}
-                        >
-                            <Text style={[styles.optionText,
-                            question.selectedOptionIds.includes(option.id) && styles.selectedOption,
-                            ]}>{option.text}</Text>
-                        </TouchableOpacity>
-                    ))}
-                    {question.type === 'single' && question.options.map((option) => (
-                        <TouchableOpacity
-                            key={option.id}
-                            style={[
-                                styles.option,
-                                question.selectedOptionIds.includes(option.id) && styles.selectedOption,
-                            ]}
-                            onPress={() => handleOptionSelect(question.id, option.id, question.type)}
-                        >
-                            <Text style={[styles.optionText,
-                            question.selectedOptionIds.includes(option.id) && styles.selectedOption,
-                            ]}>{option.text}</Text>
-                        </TouchableOpacity>
-                    ))}
-                    {question.type === 'open' && (
-                        <KeyboardAwareScrollView>
-                            <View>
-                                <TextInput
-                                    style={styles.input}
-                                    onChangeText={(text) => handleTextInput(question.id, text)}
-                                    value={question.selectedOptionIds[0]}
-                                    multiline
-                                />
-                            </View>
+        <SafeAreaView style={{ flex: 1, backgroundColor: Color.background }}>
+            <Cabeza tittle="Encuesta" />
+            <KeyboardAwareScrollView style={styles.container}>
+                <Text style={{ color: "#DBDBDB", fontSize: 30, fontWeight: "500", fontFamily: FontFamily.robotoRegular, }}>{data.titulo}</Text>
+                <Text style={styles.subtitle}>
+                    {currentDate.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: 'long',
+                    })} - {currentDate.toLocaleTimeString().slice(0, 5)}
+                </Text>
+                <Text style={styles.subtitle}>
+                   {data.descripcion}
+                </Text>
+                <Text style={{ color: "#BCABFC", marginVertical: 30, left: 5 }}>____________________</Text>
 
-                        </KeyboardAwareScrollView>
+                {surveyData.map((question) => (
+                    <View style={{ marginTop:5  }} key={question.id}>
+                        <Text style={styles.question}>
+                        {/* ¿Qué opinás sobre la medida de desvinculación de aprox  7000 empleados públicos mediante el DNU firmado por el presidente Milei? */}
+                        {question.question}
+                        </Text>
+                        {question.type === 'multiple' && (
+                            <Multiple
+                                question={question}
+                                handleOptionSelect={handleOptionSelect}
+                            />
+                        )}
 
-                    )}
-                    {question.type === 'camera' && (
-                        <TouchableOpacity onPress={() => handleCameraSelect(question.id)} style={styles.cameraButton}>
-                            <Text style={{ textAlign: "center" }}>Tomar foto</Text>
-                            {question.selectedOptionIds && question.selectedOptionIds.length > 0 && question.selectedOptionIds[0] !== '' && (
-                                <Image source={{ uri: question.selectedOptionIds[0] }} style={{ width: 100, height: 100 }} />
-                            )}
-                        </TouchableOpacity>
-                    )}
+                        {question.type === 'single' && (
+                            <Single
+                                question={question}
+                                handleOptionSelect={handleOptionSelect}
+                            />
+                        )}
+
+
+                        {question.type === 'open' && (
+                            <KeyboardAwareScrollView>
+                                <View>
+                                    <TextInput
+                                        style={styles.input}
+                                        onChangeText={(text) => handleTextInput(question.id, text)}
+                                        value={question.selectedOptionIds[0]}
+                                        multiline
+                                    />
+                                </View>
+
+                            </KeyboardAwareScrollView>
+
+                        )}
+                        {question.type === 'camera' && (
+                            <TouchableOpacity onPress={() => handleCameraSelect(question.id)} style={styles.cameraButton}>
+                                <Text style={{ textAlign: "center" }}>Tomar foto</Text>
+                                {question.selectedOptionIds && question.selectedOptionIds.length > 0 && question.selectedOptionIds[0] !== '' && (
+                                    <Image source={{ uri: question.selectedOptionIds[0] }} style={{ width: 100, height: 100 }} />
+                                )}
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                ))}
+                <View style={{ width: '100%', top: 10, marginBottom: 100 }}>
+                    <View style={[styles.official3, styles.containerButtons]}>
+                        {isSurveyComplete ? (
+                            <TouchableOpacity style={styles.button1} onPress={() => {
+                                setIsLoading(true);
+                                send();
+
+                            }}>
+                                {isLoading && <ActivityIndicator />}
+                                {!isLoading && <Text style={{ color: 'black' }} >
+                                    Finalizar encuesta
+                                </Text>}
+
+                            </TouchableOpacity>
+                        ) : (
+                            <TouchableOpacity style={styles.button1}>
+
+                                <Text style={{ color: 'black' }} onPress={() => console.log(surveyData)}>
+                                    Finalizar encuesta
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </View>
-            ))}
-            <View style={{ width: '100%', top: 10, marginBottom: 100 }}>
-                <View style={[styles.official3, styles.containerButtons]}>
-                    {isSurveyComplete ? (
-                        <TouchableOpacity style={styles.button1} onPress={() => {
-                            setIsLoading(true);
-                            send();
-
-                        }}>
-                            {isLoading && <ActivityIndicator />}
-                            {!isLoading && <Text style={{ color: 'white' }} >
-                                Finalizar encuesta
-                            </Text>}
-
-                        </TouchableOpacity>
-                    ) : (
-                        <TouchableOpacity style={styles.button1Disabled}>
-
-                            <Text style={{ color: 'white' }} onPress={() => console.log(surveyData)}>
-                                Finalizar encuesta
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-        </ScrollView>
+            </KeyboardAwareScrollView>
+        </SafeAreaView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "white",
+        backgroundColor: Color.background,
         flex: 1,
         padding: 20,
         paddingBottom: 300,
@@ -361,16 +370,17 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     button1: {
-        backgroundColor: '#4931a1',
+        backgroundColor: 'white',
         paddingHorizontal: 37,
-        padding: 10,
-        borderRadius: 10,
+        padding: 15,
+        borderRadius: 35,
     },
     button1Disabled: {
-        backgroundColor: 'black',
+        backgroundColor: 'white',
         paddingHorizontal: 37,
+        paddingVertical: 20,
         padding: 10,
-        borderRadius: 10,
+        borderRadius: 60,
     },
     button: {
         borderWidth: 1,
@@ -387,19 +397,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: 'grey',
     },
+
     question: {
-        fontSize: 15,
+        fontSize: 21.9,
         marginVertical: 10,
-        fontWeight: '900'
+        lineHeight: 30,
+        padding: 15,
+        fontWeight: '400',
+        fontFamily: "OpenSans-Regular",
+        color: 'white',
     },
     option: {
         borderWidth: 1,
-        borderColor: 'white',
+        borderColor: '#272A31',
         borderRadius: 8,
         paddingVertical: 10,
         paddingHorizontal: 15,
         marginBottom: 10,
-        backgroundColor: "#f6f6f6"
+        backgroundColor: "#272A31"
     },
     selectedOption: {
         backgroundColor: 'orange',
@@ -407,6 +422,7 @@ const styles = StyleSheet.create({
     },
     optionText: {
         fontSize: 16,
+        color: 'white',
     },
     input: {
         backgroundColor: '#f6f6f6',

@@ -6,8 +6,8 @@ import Button, { ButtonProps } from './Button';
 
 export interface PrimaryButtonProps extends ButtonProps {
   title: string;
-  type?: 'primary' | 'secondary' | 'tertiary';
-  size?: 'default' | 'small';
+  type?: 'primary' | 'secondary' | 'tertiary' | 'disabled';
+  size?: 'default' | 'small' | 'mini';
   loading?: boolean;
 }
 
@@ -42,7 +42,6 @@ const PrimaryButton: React.FC<PrimaryButtonProps> = ({
           style={[
             styles.text,
             styles[`label_${type}`],
-            props.disabled ? styles.textDisabled : null,
           ]}
         >
           {title}
@@ -56,34 +55,44 @@ export default PrimaryButton;
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: Color.designPrimary,
+    backgroundColor: "white",
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 30,
     borderWidth: 1,
   },
   primary: {
     borderColor: Color.designPrimary,
-    paddingVertical: 16,
+    paddingVertical: 34,
+    marginTop:10
   },
   secondary: {
+    borderColor: "white",
+    backgroundColor: 'black',
+  },
+  disabled: {
     borderColor: Color.designPrimary,
-    backgroundColor: 'white',
+    backgroundColor: 'black',
   },
   tertiary: {
     borderColor: 'black',
     backgroundColor: 'white',
   },
   default: {
-    paddingVertical: 16,
+    paddingVertical: 20,
   },
   small: {
-    paddingVertical: 10,
-    borderRadius: 8,
+    paddingVertical: 20,
+    borderRadius: 30,
+  },
+  mini: {
+    paddingVertical: 2,
+    borderRadius: 30,
   },
   text: {
+    color:"black",
     alignSelf: 'center',
-    fontSize: 14,
-    fontFamily:'Raleway-Regular'
+    fontSize: 18,
+    fontFamily:'Raleway-Regular',
     },
   textDisabled: {
     color: '#626262',
@@ -96,20 +105,19 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-
     elevation: 3,
   },
   label_primary: {
-    color: 'white',
+    color: 'black',
   },
   label_secondary: {
-    color: Color.designPrimary,
+    color: "white",
   },
   label_tertiary: {
     color: '#333',
   },
   disabled: {
-    backgroundColor: '#EEE',
-    borderColor: '#CCC',
+    backgroundColor: 'gray',
+    borderColor: 'gray',
   },
 });

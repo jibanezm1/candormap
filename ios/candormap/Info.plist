@@ -4,8 +4,6 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Necesitamos acceder a tus fotos para que puedas seleccionar imágenes y subirlas a la aplicación segun se requiera.</string>
 	<key>CFBundleDisplayName</key>
 	<string>candormap</string>
 	<key>CFBundleExecutable</key>
@@ -22,6 +20,19 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+		<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.tuempresa.candormap</string> <!-- Cambia esto por tu identificador de bundle -->
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>candormap</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -37,27 +48,20 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>Nuestra aplicación utiliza notificaciones para mantenerte informado sobre novedades y actualizaciones importantes.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Necesitamos acceder a tu cámara para que puedas tomar y subir fotos como parte de completar los cuestionarios. Tus fotos solo se utilizarán para este propósito y no se compartirán con terceros ni se utilizarán para otros fines sin tu consentimiento.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Necesitamos acceder a tu ubicación cuando estés usando la aplicación para determinar tu proximidad o ubicación en relación con una misión específica.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>¿Deseas usar FaceID para iniciar sesión?</string>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>armv7</string>
-	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Necesitamos acceso continuo a tu ubicación, incluso cuando la aplicación no está en primer plano, para proporcionarte actualizaciones y alertas precisas relacionadas con misiones específicas en tu área. Esto es esencial para asegurar que recibas información relevante y oportuna, independientemente de si estás activamente usando la aplicación o no.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Necesitamos acceder a tu ubicación cuando estés usando la aplicación para determinar tu proximidad o ubicación en relación con una misión específica.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Necesitamos acceder a tus fotos para que puedas seleccionar imágenes y subirlas a la aplicación segun se requiera.</string>
 	<key>UIAppFonts</key>
-		<array>
+	<array>
 		<string>AntDesign.ttf</string>
 		<string>Entypo.ttf</string>
 		<string>EvilIcons.ttf</string>
@@ -77,7 +81,24 @@
 		<string>Octicons.ttf</string>
 		<string>Zocial.ttf</string>
 		<string>Fontisto.ttf</string>
-		</array>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
 </dict>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Image, Animated, Dimensions } from 'react-native';
 import { ScrollView } from 'react-native';
 
 import MapView, { Marker, Region } from 'react-native-maps';
@@ -11,6 +11,10 @@ import { MisionesResponse, IMision, ITipoMision } from '../utils/types';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from 'react-native-geolocation-service';
+import Cabeza from '../components/molecules/Header';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Color } from '../styles/Global';
+
 
 type TasksScreenNavigationProp = any; // Placeholder type declaration
 
@@ -24,6 +28,7 @@ const Discovery = () => {
 
   const [tasksData, setTasksData] = useState([]);
   const [currentRegion, setCurrentRegion] = useState<Region | undefined>(undefined);
+  const [location, setLocation] = useState({ latitude: 0, longitude: 0 });
 
   useEffect(() => {
     Geolocation.getCurrentPosition(
@@ -35,6 +40,10 @@ const Discovery = () => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         });
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
       },
       (error) => {
         console.error(error);
@@ -43,7 +52,7 @@ const Discovery = () => {
     );
   }, []);
 
-  
+
   useEffect(() => {
     const apiUrl = 'https://candormap.cl/api/misiones';
     axios
@@ -73,6 +82,7 @@ const Discovery = () => {
   const [currentUser, setCurrentUser] = React.useState([]);
 
   const [isModalMisionVisible, setModalMisionVisible] = useState(false);
+  const [logoAnimation] = useState(new Animated.Value(0)); // Valor animado para la animación
 
 
   const toggleModal = () => {
@@ -154,15 +164,70 @@ const Discovery = () => {
     }
 
   }, [currentUser]);
-
+  const logoStyle = {
+    transform: [
+      {
+        translateY: logoAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [-100, 0], // Comienza 100 píxeles arriba y se mueve a su posición original
+        }),
+      },
+    ],
+  };
   return (
-    <View style={styles.page}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: Color.background }}>
+      <Cabeza tittle="Tareas" />
+      <View style={{ marginHorizontal: 30, top: 100 }}>
+        <Animated.View style={logoStyle}>
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("HomeTask")
+          }}>
+            <Text style={{ color: "#DBDBDB",  fontSize: (Dimensions.get('screen').width > 320 ? 40 : 20) }}>Tareas</Text>
+
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View style={logoStyle}>
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("MissionsHome")
+          }}>
+            <Text style={{ color: "#DBDBDB", fontSize: (Dimensions.get('screen').width > 320 ? 40 : 20) }}>Misiones</Text>
+
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View style={logoStyle}>
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("Discovery")
+          }}>
+            <Text style={{ color: "#C889FF",  fontSize: (Dimensions.get('screen').width > 320 ? 40 : 20) }}>Explorar</Text>
+
+          </TouchableOpacity>
+        </Animated.View>
+        <Animated.View style={logoStyle}>
+          <TouchableOpacity onPress={() => {
+            navigation.navigate("HomeTask")
+          }}>
+            <Image source={require('../assets/images_black/abajo.png')} style={{ width: 84, height: 84 }} />
+
+          </TouchableOpacity>
+        </Animated.View>
+
+      </View>
+
       <View style={styles.container}>
         <MapView
           style={styles.map}
           region={currentRegion} // Usa la región actualizada aquí
           onRegionChangeComplete={region => setCurrentRegion(region)}
         >
+          <Marker
+            coordinate={{
+              latitude: location.latitude,
+              longitude: location.longitude,
+            }}
+            title={"Mi Ubicación"}
+          >
+            <Image source={require('../assets/location.png')} style={{ width: 40, height: 40 }} />
+          </Marker>
           {misiones.map((mision: IMision) => (
             <Marker
               key={mision.idMision}
@@ -300,7 +365,7 @@ const Discovery = () => {
         </Modal>
 
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -408,11 +473,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 8,
   },
-  page: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+
+
   button: {
     bottom: 0,
 
@@ -435,7 +497,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   container: {
-    height: '100%',
+    flex: 1,
     width: '100%',
   },
   map: {

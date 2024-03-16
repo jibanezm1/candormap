@@ -16,12 +16,13 @@ export const FontFamily = {
   /* Colors */
   export const Color = {
     designBGMain: "#fafafa",
-    designLightGray: "#787878",
+    designLightGray: "#64666E",
     designDefault: "#1b1b1b",
     designPrimary: "#4931a1",
     white: "#fff",
     black: "#000",
     designTitle: "#2e3a59",
+    background: '#18191C',
   };
  
   

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, Alert, ScrollView } from 'react-native';
 import TaskItem from '../components/molecules/TaskItem';
 import axios from 'axios';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Chapters from './Chapters';
+import { ScreenHeight } from 'react-native-elements/dist/helpers';
+import { Color } from '../styles/Global';
 
 const Missions = ({ estado }: { estado: any }) => {
   const [tasksData, setTasksData] = useState([]);
@@ -133,30 +135,78 @@ const Missions = ({ estado }: { estado: any }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        ref={flatListRef}
-        nestedScrollEnabled={true}
+    <ScrollView style={styles.container}>
 
-        data={tasksData}
-        keyExtractor={(item) => item.idMision.toString()}
-        renderItem={renderItem}
-        onEndReachedThreshold={0.1}
-        onEndReached={estado == 0 ? loadMoreData : null}
-        ListFooterComponent={loading ? <ActivityIndicator /> : noMoreItems ? <View style={{ padding: 30, alignContent: "center", alignItems: "center" }}>
-          <Text style={{ color: "black" }}>No quedan más elementos por mostrar.</Text>
-        </View> : null}
+      {
+        tasksData.length ? (
+          <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+            {tasksData.map((item, index) => (
+              <Chapters
+                title={item.titulo}
+                description={item.descripcion}
+                price={`$${item.recompensa}`}
+                duration={item.tiempo}
+                imageSource={item.idCuestionario0.imagenIcono}
+                cuestionario={item.idCuestionario0}
+                instrucciones={item.instrucciones}
+                estado={true}
+                mision={item}
+                onPressTask={onSubmit}
+              />
+            ))}
+            {tasksData.length ? (
+              <View style={{ padding: 30, marginBottom: 300, alignContent: "center", alignItems: "center" }}>
+                <Text style={{ color: "white" }}>No quedan más elementos por mostrar.</Text>
+              </View>
+            ) : null}
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Image
+              source={require('../assets/sinencuestas.png')}
+              style={styles.imageStyle}
+            />
+            <Text style={styles.emptyText}>
+              Actualmente no tienes tareas o encuestas realizadas. ¡Revisa más tarde para nuevas oportunidades!
+            </Text>
+          </View>
+        )
+      }
 
-      />
-    </View>
+
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    top: 150
+  },
   container: {
-    flex: 1,
-    backgroundColor: 'white',
-    height: 500
+
+    backgroundColor: Color.background,
+  },
+  scrollViewContent: {
+    height: "100%",
+    paddingBottom: 100, // Agrega espacio en la parte inferior si es necesario
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageStyle: {
+    height: 150,
+    width: "80%", // Ajustado para ser un porcentaje del ancho del contenedor
+    resizeMode: 'contain',
+  },
+  emptyText: {
+    color: "#345c74",
+    fontFamily: "Bold",
+    fontSize: 13,
+    textAlign: 'center',
+    marginHorizontal: 30,
   },
 });
 
